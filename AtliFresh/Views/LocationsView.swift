@@ -7,45 +7,68 @@
 
 import SwiftUI
 import MapKit
-
+import UIKit
+import Mantis
 
 struct LocationsView: View {
     
     @EnvironmentObject private var vm: LocationsViewModel
     let maxWidthForIpad: CGFloat = 700
+    let creamColor = Color("BackColor")
     
+
     var body: some View {
         ZStack {
-          mapLayer
-            .ignoresSafeArea()
-            // vertical stack
+            mapLayer
+                .ignoresSafeArea()
             
             VStack {
-                SearchBarView(searchString: $vm.searchString)
-                    
+                SearchBarView()
                 Spacer()
             }
             .ignoresSafeArea(edges: .bottom)
             
-            VStack(spacing: 0){
-                //header
-                
-                Spacer()
-                if(!vm.showSearchView){
+            if (!vm.showSearchView){
+                VStack(spacing: 0){
+                    Spacer()
+                    HStack{
+                        Spacer()
+                        cameraButton
+                            .padding()
+                    }
                     footer
                 }
-                //locationsPreviewStack
+                .sheet(item: $vm.sheetLocation, onDismiss: nil) { location in LocationDetailView(location: location)
+                    }
+                    .ignoresSafeArea(.keyboard)
             }
-            .sheet(item: $vm.sheetLocation, onDismiss: nil) { location in LocationDetailView(location: location)
-            }
-            .ignoresSafeArea(.keyboard)
-            /*
-            .safeAreaInset(edge: .bottom, alignment: .center, spacing: 0) {
-                if(vm.showShowListPreview){
-                    footer
+            Group{
+                if (vm.showSettingsView){
+                    Color.black.opacity(0.65)
+                        .edgesIgnoringSafeArea(.all)
+                        .onTapGesture {
+                            vm.showSettingsView.toggle()
+                        }
+                }
+                if (vm.showSettingsView) {
+                    SettingsView()
+                        .transition(.scale(scale: 0.001, anchor: .topTrailing).combined(
+                            with: AnyTransition.offset(x: 0, y: -80)))
                 }
             }
-            */
+            
+            Group{
+                ZStack{
+                    if(vm.showImagePicker){
+                        ImagePicker(selectedImage: $vm.selectedImage, didSelectImage: $vm.didSelectImage)
+                            .ignoresSafeArea(.all)
+                    }
+                    if(vm.showUploadView){
+                        ImageUploadView(cropImage: $vm.selectedImage)
+                            .ignoresSafeArea(.all)
+                    }
+                }
+            }
         }
         .statusBarHidden(vm.hideStatusBar)
     }
@@ -92,6 +115,7 @@ extension LocationsView {
     
     
     private var mapLayer: some View {
+
         Map(coordinateRegion: $vm.mapRegion,
             annotationItems: vm.locations,
             annotationContent: { location in
@@ -103,8 +127,10 @@ extension LocationsView {
                             vm.showNextLocation(location: location)
                         }
                 }
+            
             }
         )
+        .ignoresSafeArea()
     }
     
     private var locationsPreviewStack: some View {
@@ -125,7 +151,27 @@ extension LocationsView {
         }
     }
     
+    private var cameraButton: some View {
+        Button{
+            vm.showImagePicker = true
+        } label: {
+            ZStack{
+                Circle()
+                    .frame(width: 70)
+                    
+                Image(systemName: "plus.viewfinder")
+                    .resizable()
+                    .frame(width: 30, height: 30)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(UIColor.systemBackground))
+            }
+        }
+    }
+    
+
     private var footer: some View{
+        
+        
         Button{
             vm.sheetLocationDetails = true
         } label: {

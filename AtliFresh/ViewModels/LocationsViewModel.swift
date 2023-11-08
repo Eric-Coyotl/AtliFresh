@@ -44,7 +44,21 @@ class LocationsViewModel: ObservableObject {
     @Published var hideStatusBar: Bool = false
     @Published var debouncedSearchString: String = ""
     
+    // Settings View
+    @Published var showSettingsView: Bool = false
     
+    // Camera variables
+    @Published var selectedImage: UIImage? = nil
+    
+    @Published var didSelectImage: Bool = false
+    @Published var showUploadView: Bool = false
+    
+    // show imagepicker is for initial camera
+    @Published var showImagePicker: Bool = false
+    // for inner camera screen
+    @Published var showCameraView: Bool = false
+
+
     init() {
         let locations = LocationsDataService.locations
         self.locations = locations
@@ -123,6 +137,4 @@ class LocationsViewModel: ObservableObject {
         
         return url
     }
-
-
 }

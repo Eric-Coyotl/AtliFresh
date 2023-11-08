@@ -8,23 +8,22 @@
 import SwiftUI
 
 struct SearchBarView: View {
-    
-    @State private var showingSheet = false
-
     @EnvironmentObject private var vm: LocationsViewModel
 
-    @Binding var searchString: String
     let accentColor = Color("AccentColor")
     
     var body: some View {
         
         if (vm.showSearchView){
-            FullScreenSearchView(searchString: $vm.searchString)
+            FullScreenSearchView()
         }
         else{
             SearchBar
+                .padding()
                 .onTapGesture {
-                    vm.showSearchView = true
+                    withAnimation(.easeIn(duration: 0.1)) {
+                        vm.showSearchView = true
+                    }
                     vm.hideStatusBar = true
                 }
         }
@@ -34,7 +33,7 @@ struct SearchBarView: View {
 struct SearchBarView_Previews: PreviewProvider {
     static var previews: some View {
         ZStack {            
-            SearchBarView(searchString: .constant(""))
+            SearchBarView()
                 .environmentObject(LocationsViewModel())
         }
     }
@@ -42,7 +41,6 @@ struct SearchBarView_Previews: PreviewProvider {
 
 
 extension SearchBarView{
-    
     private var SearchBar: some View {
         HStack() {
             Image(systemName: "mappin.and.ellipse")
@@ -51,21 +49,26 @@ extension SearchBarView{
                 .frame(alignment: .leading)
                 .padding(.leading)
             
-            TextField("Search here", text: $searchString)
+            Text("Search here")
                 .font(.title3)
-                .fontWeight(.regular)
+                .foregroundStyle(Color(.gray)
+                    .opacity(0.6))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 6)
-                .overlay(alignment: .trailing){
-                    Image(systemName: "x.circle")
-                        .padding(.horizontal, 16)
-                        .opacity(searchString.isEmpty ? 0.0 : 1.0)
-                        .onTapGesture {
-                            UIApplication.shared.endEditing()
-                            searchString = ""
-                            
-                        }
+                .offset(y: -1.5)
+            Button{
+                withAnimation(.easeIn(duration: 0.1)) {
+                    vm.showSettingsView.toggle()
                 }
+            } label: {
+                ZStack {
+                    Image(systemName: "gearshape")
+                        .padding(.horizontal)
+                    Rectangle().frame(width: 50, 
+                                      height: 50).opacity(0.001)
+                                        .layoutPriority(-1)
+                }
+            }
         }
         .padding(.vertical, 10)
         .frame(maxWidth: 360)

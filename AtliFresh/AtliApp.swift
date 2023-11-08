@@ -6,17 +6,21 @@
 //
 
 import SwiftUI
+import Firebase
 
 @main
 struct AtliApp: App {
-
-    @StateObject private var vm = LocationsViewModel()
-
+        
+    init() {
+        FirebaseApp.configure()
+        print("Configured Firebase!")
+    }
     
     var body: some Scene {
         WindowGroup {
-            LocationsView()
-                .environmentObject(vm)
+            RootView()
+                .environmentObject(AuthViewModel())
+                .environmentObject(LocationsViewModel())
         }
     }
 }

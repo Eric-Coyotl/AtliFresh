@@ -8,25 +8,37 @@
 import SwiftUI
 
 struct FullScreenSearchView: View {
+    
     enum FocusField: Hashable {
         case field
     }
     @FocusState private var focusedField: FocusField?
     
     @EnvironmentObject private var vm: LocationsViewModel
-
-    @Binding var searchString: String
+    @State private var searchString = ""
+    
     let accentColor = Color("AccentColor")
     
     var body: some View {
         
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color(UIColor.systemBackground).ignoresSafeArea()
             VStack() {
                 SearchBar
+                    .padding()
+                                
                 List{
                     ForEach(filteredLocations){ location in
-                        Text(location.name)
+                        Button {
+                            vm.showSearchView = false
+                            focusedField = nil
+                            vm.hideStatusBar = false
+                            searchString = ""
+                            vm.showNextLocation(location: location)
+                        } label: {
+                            Text(location.name)
+                                .foregroundColor(.primary)
+                        }
                     }
                 }
                 .listStyle(.grouped)
@@ -39,7 +51,7 @@ struct FullScreenSearchView: View {
 
 struct FullScreenSearchView_Previews: PreviewProvider {
     static var previews: some View {
-        FullScreenSearchView(searchString: .constant(""))
+        FullScreenSearchView()
             .environmentObject(LocationsViewModel())
     }
 }
@@ -49,7 +61,9 @@ extension FullScreenSearchView{
     private var SearchBar: some View {
         HStack() {
             Button {
-                vm.showSearchView = false
+                withAnimation(.easeOut(duration: 0.1)){
+                    vm.showSearchView = false
+                }
                 focusedField = nil
                 vm.hideStatusBar = false
                 searchString = ""
@@ -67,15 +81,23 @@ extension FullScreenSearchView{
                 .font(.title3)
                 .fontWeight(.regular)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 6)
+                .padding(.leading, 14.5)
                 .overlay(alignment: .trailing){
-                    Image(systemName: "x.circle")
-                        .padding(.horizontal, 16)
-                        .opacity(searchString.isEmpty ? 0.0 : 1.0)
-                        .onTapGesture {
-                            UIApplication.shared.endEditing()
-                            searchString = ""
-                        }
+                    ZStack {
+                        Image(systemName: "multiply.circle")
+                            .resizable()
+                            .fontWeight(.medium)
+                            .fontWidth(.compressed)
+                            .frame(width: 20, height: 20)
+                            .padding(.horizontal)
+                        Rectangle().frame(width: 50,
+                                          height: 50).opacity(0.001)
+                                            .layoutPriority(-1)
+                    }
+                    .opacity(searchString.isEmpty ? 0.0 : 1.0)
+                    .onTapGesture {
+                        searchString = ""
+                    }
                 }
                 .focused($focusedField, equals: .field)
                           .onAppear {
